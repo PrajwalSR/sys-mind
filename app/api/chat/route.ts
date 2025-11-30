@@ -4,19 +4,31 @@ import { SYSTEM_PROMPT } from "@/lib/systemPrompt";
 
 // Initialize Vertex AI
 // Note: In a real app, these should be environment variables
-const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT_ID || "sys-mind-mock";
+const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || "sys-mind-mock";
 const LOCATION = "us-central1";
 const MODEL_ID = "gemini-1.5-pro-preview-0409"; // Using 1.5 Pro as 3 is not public yet or use available
 
 // Prepare auth options for Vercel/Serverless environments
-const authOptions = process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY
-    ? {
+let authOptions: { credentials: any } | undefined;
+
+// Option 1: Use GOOGLE_CREDENTIALS (entire JSON file)
+if (process.env.GOOGLE_CREDENTIALS) {
+    try {
+        const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+        authOptions = { credentials };
+    } catch (e) {
+        console.error("Failed to parse GOOGLE_CREDENTIALS:", e);
+    }
+}
+// Option 2: Use individual environment variables (legacy support)
+else if (process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
+    authOptions = {
         credentials: {
             client_email: process.env.GOOGLE_CLIENT_EMAIL,
             private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'), // Handle newline characters in env var
         }
-    }
-    : undefined;
+    };
+}
 
 const vertexAI = new VertexAI({
     project: PROJECT_ID,
@@ -31,7 +43,7 @@ export async function POST(req: Request) {
         const lastMessage = messages[messages.length - 1];
 
         // Check if we have credentials. If not, return mock response.
-        if (!process.env.GOOGLE_CLOUD_PROJECT_ID) {
+        if (!authOptions) {
             console.warn("No Google Cloud Project ID found. Returning mock response.");
             return NextResponse.json({
                 message: "I'm running in mock mode because no Google Cloud credentials were provided. But I can still draw!",
