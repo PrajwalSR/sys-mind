@@ -6,16 +6,25 @@ import { SYSTEM_PROMPT } from "@/lib/systemPrompt";
 // Note: In a real app, these should be environment variables
 const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || "sys-mind-mock";
 const LOCATION = "us-central1";
-const MODEL_ID = "gemini-1.5-pro-preview-0409"; // Using 1.5 Pro as 3 is not public yet or use available
+const MODEL_ID = "gemini-2.5-pro"; // Latest model from docs
 
 // Prepare auth options for Vercel/Serverless environments
 let authOptions: { credentials: any } | undefined;
+
+// Debug: Log what env vars we have
+console.log("ENV DEBUG:", {
+    hasGoogleCredentials: !!process.env.GOOGLE_CREDENTIALS,
+    hasClientEmail: !!process.env.GOOGLE_CLIENT_EMAIL,
+    hasPrivateKey: !!process.env.GOOGLE_PRIVATE_KEY,
+    projectId: PROJECT_ID
+});
 
 // Option 1: Use GOOGLE_CREDENTIALS (entire JSON file)
 if (process.env.GOOGLE_CREDENTIALS) {
     try {
         const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
         authOptions = { credentials };
+        console.log("Using GOOGLE_CREDENTIALS");
     } catch (e) {
         console.error("Failed to parse GOOGLE_CREDENTIALS:", e);
     }
@@ -25,9 +34,10 @@ else if (process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY) {
     authOptions = {
         credentials: {
             client_email: process.env.GOOGLE_CLIENT_EMAIL,
-            private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'), // Handle newline characters in env var
+            private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
         }
     };
+    console.log("Using individual env vars");
 }
 
 const vertexAI = new VertexAI({
