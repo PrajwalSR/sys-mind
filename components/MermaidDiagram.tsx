@@ -12,12 +12,36 @@ mermaid.initialize({
 
 interface MermaidDiagramProps {
     code: string;
+    onNodeClick?: (nodeId: string) => void;
 }
 
-export default function MermaidDiagram({ code }: MermaidDiagramProps) {
+// Extend window interface to include our callback
+declare global {
+    interface Window {
+        onMermaidClick: (id: string) => void;
+    }
+}
+
+export default function MermaidDiagram({ code, onNodeClick }: MermaidDiagramProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [svg, setSvg] = useState<string>("");
     const [error, setError] = useState<string | null>(null);
+
+    // Register global callback
+    useEffect(() => {
+        window.onMermaidClick = (id: string) => {
+            console.log("Clicked node:", id);
+            if (onNodeClick) {
+                onNodeClick(id);
+            }
+        };
+
+        return () => {
+            // Cleanup
+            // @ts-ignore
+            window.onMermaidClick = undefined;
+        };
+    }, [onNodeClick]);
 
     useEffect(() => {
         const renderDiagram = async () => {

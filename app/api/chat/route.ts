@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { VertexAI } from "@google-cloud/vertexai";
-import { SYSTEM_PROMPT } from "@/lib/systemPrompt";
+import { SYSTEM_PROMPT, SOLUTION_PROMPT, EXPLANATION_PROMPT, ARCHITECT_PROMPT, REVIEW_PROMPT, DIAGRAM_PROMPT } from "@/lib/systemPrompt";
 
 // Initialize Vertex AI
 // Note: In a real app, these should be environment variables
@@ -49,7 +49,7 @@ const model = vertexAI.getGenerativeModel({ model: MODEL_ID });
 
 export async function POST(req: Request) {
     try {
-        const { messages } = await req.json();
+        const { messages, action, component, mode } = await req.json();
         const lastMessage = messages[messages.length - 1];
 
         // Check if we have credentials. If not, return mock response.
@@ -71,15 +71,38 @@ export async function POST(req: Request) {
             parts: [{ text: msg.content }],
         }));
 
+        // Select the appropriate system prompt based on mode
+        let currentSystemPrompt = SYSTEM_PROMPT;
+        if (mode === "solution") {
+            currentSystemPrompt = ARCHITECT_PROMPT;
+        } else if (mode === "review") {
+            currentSystemPrompt = REVIEW_PROMPT;
+        }
+
         const chat = model.startChat({
             history: [
-                { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
-                { role: "model", parts: [{ text: "Understood. I am ready to conduct the interview." }] },
+                { role: "user", parts: [{ text: currentSystemPrompt }] },
+                { role: "model", parts: [{ text: "Understood. I am ready." }] },
                 ...chatHistory
             ],
         });
 
-        const result = await chat.sendMessage(lastMessage.content);
+        let result;
+        if (action === "solution") {
+            // User requested the full solution
+            result = await chat.sendMessage(SOLUTION_PROMPT);
+        } else if (action === "explain" && component) {
+            // User clicked a component
+            // We send this as a user message to contextually explain
+            result = await chat.sendMessage(EXPLANATION_PROMPT(component));
+        } else if (action === "generate_diagram") {
+            // User manually requested a diagram
+            result = await chat.sendMessage(DIAGRAM_PROMPT);
+        } else {
+            // Normal chat
+            result = await chat.sendMessage(lastMessage.content);
+        }
+
         const response = result.response;
         const text = response.candidates?.[0].content.parts[0].text;
 
@@ -88,8 +111,14 @@ export async function POST(req: Request) {
         }
 
         // Parse JSON response
-        // Gemini might wrap JSON in markdown code blocks, so we clean it
-        const cleanText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+        // Gemini might wrap JSON in markdown code blocks or add conversational text
+        let cleanText = text.replace(/```json/g, "").replace(/```/g, "").trim();
+
+        // Try to extract just the JSON object if there's extra text
+        const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            cleanText = jsonMatch[0];
+        }
 
         try {
             const jsonResponse = JSON.parse(cleanText);

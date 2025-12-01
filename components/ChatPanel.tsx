@@ -9,10 +9,14 @@ interface ChatPanelProps {
     messages: Message[];
     onSendMessage: (content: string) => void;
     onSave: () => void;
+    onRevealSolution: () => void;
+    onGenerateDiagram: () => void;
     isTyping: boolean;
+    mode: "interview" | "solution" | "review";
+    onModeChange: (mode: "interview" | "solution" | "review") => void;
 }
 
-export default function ChatPanel({ messages, onSendMessage, onSave, isTyping }: ChatPanelProps) {
+export default function ChatPanel({ messages, onSendMessage, onSave, onRevealSolution, onGenerateDiagram, isTyping, mode, onModeChange }: ChatPanelProps) {
     const [input, setInput] = useState("");
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -42,15 +46,57 @@ export default function ChatPanel({ messages, onSendMessage, onSave, isTyping }:
             {/* Header */}
             <div className="p-4 border-b border-neutral-800 bg-neutral-900/50 backdrop-blur-sm flex justify-between items-center">
                 <div>
-                    <h2 className="text-lg font-semibold text-white">SysMind Interviewer</h2>
-                    <p className="text-sm text-neutral-400">System Design Challenge</p>
+                    <h2 className="text-lg font-semibold text-white">SysMind</h2>
+                    <div className="flex items-center gap-2 mt-1">
+                        <button
+                            onClick={() => onModeChange("interview")}
+                            className={cn(
+                                "text-xs px-2 py-1 rounded transition-colors",
+                                mode === "interview" ? "bg-blue-600 text-white" : "text-neutral-400 hover:text-white"
+                            )}
+                        >
+                            Interview
+                        </button>
+                        <button
+                            onClick={() => onModeChange("solution")}
+                            className={cn(
+                                "text-xs px-2 py-1 rounded transition-colors",
+                                mode === "solution" ? "bg-purple-600 text-white" : "text-neutral-400 hover:text-white"
+                            )}
+                        >
+                            Solution
+                        </button>
+                        <button
+                            onClick={() => onModeChange("review")}
+                            className={cn(
+                                "text-xs px-2 py-1 rounded transition-colors",
+                                mode === "review" ? "bg-orange-600 text-white" : "text-neutral-400 hover:text-white"
+                            )}
+                        >
+                            Review
+                        </button>
+                    </div>
                 </div>
-                <button
-                    onClick={onSave}
-                    className="text-xs px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-md transition-colors border border-neutral-700"
-                >
-                    Save Session
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        onClick={onGenerateDiagram}
+                        className="text-xs px-3 py-1.5 bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 rounded-md transition-colors border border-blue-600/30"
+                    >
+                        Visualize
+                    </button>
+                    <button
+                        onClick={onRevealSolution}
+                        className="text-xs px-3 py-1.5 bg-green-600/20 hover:bg-green-600/30 text-green-400 rounded-md transition-colors border border-green-600/30"
+                    >
+                        Reveal Solution
+                    </button>
+                    <button
+                        onClick={onSave}
+                        className="text-xs px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-md transition-colors border border-neutral-700"
+                    >
+                        Save Session
+                    </button>
+                </div>
             </div>
 
             {/* Messages Area */}

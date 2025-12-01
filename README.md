@@ -1,36 +1,109 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# SysMind: AI System Design Interview Partner
 
-## Getting Started
+**SysMind** is an intelligent, interactive AI partner designed to help you master System Design interviews. Unlike standard chatbots, SysMind offers a specialized environment with a live whiteboard, multiple interaction modes, and deep architectural knowledge.
 
-First, run the development server:
+![SysMind Interface](https://via.placeholder.com/800x450?text=SysMind+Interface+Preview)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🚀 Key Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 1. Three Specialized Modes
+SysMind adapts to your learning style with three distinct modes:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+*   **🎤 Interview Mode (Default)**
+    *   **Goal**: Test your skills.
+    *   **Behavior**: The AI acts as a Socratic interviewer. It asks probing questions, challenges your assumptions, and gives hints without revealing the answer.
+    *   **Best for**: Mock interviews and active practice.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+*   **🏗️ Solution Mode**
+    *   **Goal**: Learn from an expert.
+    *   **Behavior**: The AI acts as a Senior Principal Architect. It collaborates with you, asks clarifying requirements, and then proactively designs and explains the ideal system.
+    *   **Best for**: Learning new patterns and seeing "perfect" solutions.
 
-## Learn More
+*   **🎨 Review Mode**
+    *   **Goal**: Get feedback on your ideas.
+    *   **Behavior**: You describe a system (e.g., "I have a React app talking to a Node backend..."), and the AI visualizes it and critiques it for bottlenecks, SPOFs (Single Points of Failure), and scalability issues.
+    *   **Best for**: Validating your own designs.
 
-To learn more about Next.js, take a look at the following resources:
+### 2. Live Architecture Diagrams (Mermaid.js)
+*   **On-Demand Visualization**: Click the **"Visualize"** button at any time to generate a professional system architecture diagram based on your current conversation.
+*   **Interactive Nodes**: Click on any component in the diagram (e.g., "Load Balancer", "Redis") to get a specific, technical explanation of its role in your design.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 3. "Reveal Solution"
+*   Stuck during an interview? Click **"Reveal Solution"** to instantly get a comprehensive, high-level design for the current problem, complete with a diagram and trade-off analysis.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🛠️ Getting Started
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Prerequisites
+*   Node.js 18+
+*   A Google Cloud Project with Vertex AI API enabled.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Installation
+
+1.  **Clone the repository**
+    ```bash
+    git clone https://github.com/yourusername/sys-mind.git
+    cd sys-mind
+    ```
+
+2.  **Install dependencies**
+    ```bash
+    npm install
+    ```
+
+3.  **Configure Credentials**
+    SysMind uses Google Vertex AI. You need to provide credentials.
+    
+    **Option A: Environment Variables (Recommended for local)**
+    Create a `.env.local` file:
+    ```env
+    GOOGLE_CLOUD_PROJECT_ID=your-project-id
+    GOOGLE_CLIENT_EMAIL=your-service-account-email
+    GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n..."
+    ```
+
+    **Option B: Base64 Encoded (Recommended for Vercel)**
+    Encode your service account JSON file to Base64 and use a single variable:
+    ```env
+    GOOGLE_CREDENTIALS=ey... (base64 string)
+    ```
+
+4.  **Run the development server**
+    ```bash
+    npm run dev
+    ```
+    Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 📖 Usage Guide
+
+### How to use "Visualize"
+The diagram does **not** update automatically after every message to keep the chat fast.
+1.  Discuss your design with the AI.
+2.  When you want to see the architecture, click the blue **"Visualize"** button in the header.
+3.  The AI will analyze the entire conversation history and draw the current state of the system.
+
+### How to use "Explain Component"
+1.  Generate a diagram using "Visualize".
+2.  Click on any node in the diagram (e.g., a database cylinder).
+3.  The AI will send a message explaining exactly why that component is there and what alternatives exist.
+
+---
+
+## 📚 Example Scenarios
+
+Check out [SCENARIOS.md](./SCENARIOS.md) for detailed example workflows for each mode.
+
+---
+
+## 🏗️ Tech Stack
+*   **Framework**: Next.js 14 (App Router)
+*   **AI**: Google Vertex AI (Gemini Pro)
+*   **Styling**: Tailwind CSS
+*   **Diagrams**: Mermaid.js
+*   **Icons**: Lucide React
+
+## 📄 License
+MIT

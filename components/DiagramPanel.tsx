@@ -4,9 +4,10 @@ import MermaidDiagram from "./MermaidDiagram";
 
 interface DiagramPanelProps {
     code: string;
+    onNodeClick?: (nodeId: string) => void;
 }
 
-export default function DiagramPanel({ code }: DiagramPanelProps) {
+export default function DiagramPanel({ code, onNodeClick }: DiagramPanelProps) {
     return (
         <div className="flex flex-col h-full bg-neutral-950">
             {/* Header */}
@@ -22,7 +23,7 @@ export default function DiagramPanel({ code }: DiagramPanelProps) {
             {/* Diagram Canvas */}
             <div className="flex-1 overflow-hidden relative">
                 <div className="absolute inset-0 p-4">
-                    <MermaidDiagram code={code} />
+                    <MermaidDiagram code={code} onNodeClick={onNodeClick} />
                 </div>
             </div>
         </div>
