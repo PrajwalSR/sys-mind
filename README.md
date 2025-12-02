@@ -16,7 +16,8 @@ SysMind adapts to your learning style with three distinct modes:
 
 *   **🏗️ Solution Mode**
     *   **Goal**: Learn from an expert.
-    *   **Behavior**: The AI acts as a Senior Principal Architect. It collaborates with you, asks clarifying requirements, and then proactively designs and explains the ideal system.
+    *   **Behavior**: The AI acts as a Senior Principal Architect. It collaborates with you, asks clarifying requirements using **dynamic forms**, and then proactively designs and explains the ideal system.
+    *   **New**: Instead of text-based questions, the AI presents structured forms with input fields for gathering requirements (e.g., number of users, traffic patterns, feature requirements).
     *   **Best for**: Learning new patterns and seeing "perfect" solutions.
 
 *   **🎨 Review Mode**
@@ -24,7 +25,13 @@ SysMind adapts to your learning style with three distinct modes:
     *   **Behavior**: You describe a system (e.g., "I have a React app talking to a Node backend..."), and the AI visualizes it and critiques it for bottlenecks, SPOFs (Single Points of Failure), and scalability issues.
     *   **Best for**: Validating your own designs.
 
-### 2. Live Architecture Diagrams (Mermaid.js)
+### 2. Dynamic Requirement Forms 🆕
+*   **Smart Forms**: When you ask to design a system (e.g., "Design Instagram", "Design URL Shortener"), the AI presents a structured form instead of asking questions in text.
+*   **Efficient Input**: Fill in fields for scale, traffic patterns, and features all at once.
+*   **Supported Fields**: Number inputs, text fields, and dropdown selections.
+*   **Clean History**: Submitted values are formatted and displayed in the chat for easy reference.
+
+### 3. Live Architecture Diagrams (Mermaid.js)
 *   **On-Demand Visualization**: Click the **"Visualize"** button at any time to generate a professional system architecture diagram based on your current conversation.
 *   **Interactive Nodes**: Click on any component in the diagram (e.g., "Load Balancer", "Redis") to get a specific, technical explanation of its role in your design.
 
@@ -78,6 +85,14 @@ SysMind adapts to your learning style with three distinct modes:
 ---
 
 ## 📖 Usage Guide
+
+### How to use Dynamic Forms (Solution Mode)
+1.  Switch to **Solution Mode** using the mode toggle.
+2.  Type a system design request (e.g., "Design URL Shortener", "Design Instagram").
+3.  The AI will present a structured form with relevant fields.
+4.  Fill in the form fields with your requirements (scale, features, etc.).
+5.  Click **Submit** to send your requirements.
+6.  The AI will proceed with the design based on your inputs.
 
 ### How to use "Visualize"
 The diagram does **not** update automatically after every message to keep the chat fast.

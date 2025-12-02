@@ -23,16 +23,32 @@ This document provides example workflows for the three different modes in SysMin
 
 *(Switch Toggle to "Solution")*
 
-**User**: "Design a Notification System."
-**SysMind (Architect)**: "I can certainly design that. To ensure it scales correctly, I need to know:
-1.  What is the expected throughput (notifications per second)?
-2.  Do we need to support email, SMS, and push notifications?"
-**User**: "Assume 1 million users, support all channels."
-**SysMind (Architect)**: "Understood. Here is the high-level design:
-We will use a **Message Queue** (like Kafka) to decouple the ingestion service from the senders. This ensures we don't lose notifications during spikes.
-We will have separate workers for Email (SendGrid), SMS (Twilio), and Push (FCM)."
+**User**: "Design URL Shortener"
 
-*(User clicks "Visualize")* -> **Diagram appears showing Service -> Kafka -> Workers -> 3rd Party APIs**
+**SysMind (Architect)**: "I'll help you design a URL shortener. To create the best architecture, I need some key information:"
+
+*A dynamic form appears with the following fields:*
+- **Expected number of redirects per month**: [Number input]
+- **Number of new URLs generated per month**: [Number input]
+- **Support custom URL aliases?**: [Dropdown: Yes/No]
+
+**User**: *Fills in the form:*
+- Redirects: 10,000,000
+- New URLs: 1,000,000
+- Custom aliases: Yes
+
+*Clicks "Submit"*
+
+**SysMind (Architect)**: "Perfect! Based on your requirements (10M redirects/month, 1M new URLs/month, custom aliases supported), here's the architecture:
+
+We'll use a **NoSQL database** (like DynamoDB or Cassandra) for the URL mappings because:
+1. Simple key-value lookups (short_url → long_url)
+2. Massive read scale (10M redirects/month)
+3. Easy horizontal scaling
+
+For custom aliases, we'll implement a uniqueness check before insertion. We'll also add a **Redis cache** in front of the database to handle the read-heavy traffic efficiently."
+
+*(User clicks "Visualize")* → **Diagram appears showing User → CDN → App Server → Redis → NoSQL DB**
 
 ---
 

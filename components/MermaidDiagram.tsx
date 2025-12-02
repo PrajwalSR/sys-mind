@@ -8,7 +8,14 @@ mermaid.initialize({
     theme: "dark",
     securityLevel: "loose",
     fontFamily: "Inter, sans-serif",
+    suppressErrorRendering: true,
 });
+
+// Prevent Mermaid from showing its default error overlay
+mermaid.parseError = (err) => {
+    console.error("Mermaid parse error:", err);
+    // We handle errors in the render catch block, so we suppress the default behavior here
+};
 
 interface MermaidDiagramProps {
     code: string;
@@ -47,9 +54,12 @@ export default function MermaidDiagram({ code, onNodeClick }: MermaidDiagramProp
         const renderDiagram = async () => {
             if (!code || !containerRef.current) return;
 
+            // Strip markdown code block wrappers if present
+            const cleanCode = code.replace(/```mermaid/g, "").replace(/```/g, "").trim();
+
             try {
                 const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
-                const { svg } = await mermaid.render(id, code);
+                const { svg } = await mermaid.render(id, cleanCode);
                 setSvg(svg);
                 setError(null);
             } catch (err) {
@@ -73,7 +83,7 @@ export default function MermaidDiagram({ code, onNodeClick }: MermaidDiagramProp
     return (
         <div
             ref={containerRef}
-            className="w-full h-full flex items-center justify-center overflow-auto"
+            className="w-full h-full flex items-center justify-center overflow-auto p-4"
             dangerouslySetInnerHTML={{ __html: svg }}
         />
     );

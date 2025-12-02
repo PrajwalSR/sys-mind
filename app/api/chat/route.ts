@@ -66,7 +66,12 @@ export async function POST(req: Request) {
         }
 
         // Construct the chat history for Gemini
-        const chatHistory = messages.slice(0, -1).map((msg: any) => ({
+        // If we have a specific action (solution, explain, generate_diagram), the 'messages' array 
+        // represents the full history, so we use it all.
+        // If it's a normal chat, the last message is the new prompt, so we slice it off history.
+        const historyMessages = action ? messages : messages.slice(0, -1);
+
+        const chatHistory = historyMessages.map((msg: any) => ({
             role: msg.role === "user" ? "user" : "model",
             parts: [{ text: msg.content }],
         }));

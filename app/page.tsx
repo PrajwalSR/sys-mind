@@ -4,21 +4,29 @@ import { useState, useRef, useEffect } from "react";
 import ChatPanel from "@/components/ChatPanel";
 import DiagramPanel from "@/components/DiagramPanel";
 import { saveSession } from "@/lib/db";
+import { FormData } from "@/components/DynamicForm";
 
 export type Message = {
   role: "user" | "ai";
   content: string;
+  form?: FormData;
 };
 
 const INITIAL_DIAGRAM = `
-graph TD
-    Start[Start Interview] --> Topic{Select Topic}
+graph LR
+    Start["Welcome to SysMind"] --> Input{"Describe System"}
+    Input -->|Chat with AI| Design["Architecture Created"]
+    Design -->|Click Visualize| Diagram["Live Diagram Generated"]
+    style Start fill:#1e1e1e,stroke:#333,color:#fff
+    style Input fill:#1e1e1e,stroke:#333,color:#fff
+    style Design fill:#1e1e1e,stroke:#333,color:#fff
+    style Diagram fill:#2563eb,stroke:#1d4ed8,color:#fff
 `;
 
 export default function Home() {
-  const [mode, setMode] = useState<"interview" | "solution" | "review">("interview");
+  const [mode, setMode] = useState<"interview" | "solution" | "review">("solution");
   const [messages, setMessages] = useState<Message[]>([
-    { role: "ai", content: "Hello! I'm SysMind. I'm here to conduct a System Design mock interview with you. To get started, please tell me what topic you'd like to design (e.g., 'Design Instagram', 'Design a URL Shortener')." }
+    { role: "ai", content: "Hello! I'm SysMind, your Senior Principal Architect. I'm here to help you design a scalable, reliable system. Tell me what you want to build (e.g., 'Design Instagram', 'Design a URL Shortener'), and I'll lead the architecture." }
   ]);
   const [diagramCode, setDiagramCode] = useState(INITIAL_DIAGRAM);
   const [isTyping, setIsTyping] = useState(false);
@@ -59,7 +67,8 @@ export default function Home() {
 
       const aiMsg: Message = {
         role: "ai",
-        content: data.message
+        content: data.message,
+        form: data.form // Include form data if present
       };
 
       setMessages((prev) => [...prev, aiMsg]);
@@ -169,7 +178,6 @@ export default function Home() {
           onSendMessage={handleSendMessage}
           onSave={handleSaveSession}
           onRevealSolution={handleRevealSolution}
-          onGenerateDiagram={handleGenerateDiagram}
           isTyping={isTyping}
           mode={mode}
           onModeChange={handleModeChange}
@@ -177,8 +185,13 @@ export default function Home() {
       </div>
 
       {/* Right Panel: Diagram (60% width) */}
-      <div className="flex-1 h-full">
-        <DiagramPanel code={diagramCode} onNodeClick={handleExplainComponent} />
+      <div className="w-[60%] h-full min-w-[500px]">
+        <DiagramPanel
+          code={diagramCode}
+          onNodeClick={handleExplainComponent}
+          onGenerateDiagram={handleGenerateDiagram}
+          isTyping={isTyping}
+        />
       </div>
     </main>
   );
