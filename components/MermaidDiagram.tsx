@@ -73,9 +73,15 @@ export default function MermaidDiagram({ code, onNodeClick }: MermaidDiagramProp
 
     if (error) {
         return (
-            <div className="text-red-500 p-4 border border-red-800 rounded bg-red-950/50">
-                <p className="font-semibold">Error rendering diagram:</p>
-                <pre className="text-xs mt-2 overflow-auto">{error}</pre>
+            <div className="text-red-500 p-4 border border-red-800 rounded bg-red-950/50 overflow-auto h-full">
+                <p className="font-semibold mb-2">Error rendering diagram:</p>
+                <p className="text-xs mb-2">{error}</p>
+                <div className="mt-4">
+                    <p className="text-xs text-neutral-400 mb-1">Code:</p>
+                    <pre className="text-[10px] font-mono bg-black/50 p-2 rounded text-neutral-300 whitespace-pre-wrap break-all">
+                        {code}
+                    </pre>
+                </div>
             </div>
         );
     }

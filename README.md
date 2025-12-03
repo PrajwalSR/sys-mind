@@ -97,8 +97,10 @@ SysMind adapts to your learning style with three distinct modes:
 ### How to use "Visualize"
 The diagram does **not** update automatically after every message to keep the chat fast.
 1.  Discuss your design with the AI.
-2.  When you want to see the architecture, click the blue **"Visualize"** button in the header.
-3.  The AI will analyze the entire conversation history and draw the current state of the system.
+2.  The whiteboard will initially show a prompt: "Click 'Visualize' to generate the architecture diagram".
+3.  When you want to see the architecture, click the blue **"Visualize"** button in the header.
+4.  A loading animation will appear while the AI analyzes the conversation and draws the system.
+5.  The diagram will then appear on the whiteboard.
 
 ### How to use "Explain Component"
 1.  Generate a diagram using "Visualize".

@@ -12,16 +12,7 @@ export type Message = {
   form?: FormData;
 };
 
-const INITIAL_DIAGRAM = `
-graph LR
-    Start["Welcome to SysMind"] --> Input{"Describe System"}
-    Input -->|Chat with AI| Design["Architecture Created"]
-    Design -->|Click Visualize| Diagram["Live Diagram Generated"]
-    style Start fill:#1e1e1e,stroke:#333,color:#fff
-    style Input fill:#1e1e1e,stroke:#333,color:#fff
-    style Design fill:#1e1e1e,stroke:#333,color:#fff
-    style Diagram fill:#2563eb,stroke:#1d4ed8,color:#fff
-`;
+const INITIAL_DIAGRAM = "";
 
 export default function Home() {
   const [mode, setMode] = useState<"interview" | "solution" | "review">("solution");
@@ -46,6 +37,8 @@ export default function Home() {
     setMessages([{ role: "ai", content: greeting }]);
     setDiagramCode(INITIAL_DIAGRAM);
   };
+
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleSendMessage = async (content: string) => {
     // Add user message
@@ -72,8 +65,14 @@ export default function Home() {
       };
 
       setMessages((prev) => [...prev, aiMsg]);
-      if (data.diagram) {
-        setDiagramCode(data.diagram);
+
+      // Only update diagram if it looks like a valid mermaid diagram
+      if (data.diagram && typeof data.diagram === 'string') {
+        const validStarts = ['graph', 'flowchart', 'sequenceDiagram', 'classDiagram', 'stateDiagram', 'erDiagram', 'gantt', 'pie', 'gitGraph'];
+        const cleanDiagram = data.diagram.trim();
+        if (validStarts.some(start => cleanDiagram.startsWith(start))) {
+          setDiagramCode(data.diagram);
+        }
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -111,7 +110,14 @@ export default function Home() {
       const data = await response.json();
       const aiMsg: Message = { role: "ai", content: data.message };
       setMessages((prev) => [...prev, aiMsg]);
-      if (data.diagram) setDiagramCode(data.diagram);
+
+      if (data.diagram && typeof data.diagram === 'string') {
+        const validStarts = ['graph', 'flowchart', 'sequenceDiagram', 'classDiagram', 'stateDiagram', 'erDiagram', 'gantt', 'pie', 'gitGraph'];
+        const cleanDiagram = data.diagram.trim();
+        if (validStarts.some(start => cleanDiagram.startsWith(start))) {
+          setDiagramCode(data.diagram);
+        }
+      }
     } catch (error) {
       console.error("Error getting solution:", error);
     } finally {
@@ -120,10 +126,10 @@ export default function Home() {
   };
 
   const handleGenerateDiagram = async () => {
-    // Don't trigger if already typing
-    if (isTyping) return;
+    // Don't trigger if already generating
+    if (isGenerating) return;
 
-    setIsTyping(true);
+    setIsGenerating(true);
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -135,11 +141,17 @@ export default function Home() {
 
       const data = await response.json();
       // We don't add a message for diagram generation, just update the diagram
-      if (data.diagram) setDiagramCode(data.diagram);
+      if (data.diagram && typeof data.diagram === 'string') {
+        const validStarts = ['graph', 'flowchart', 'sequenceDiagram', 'classDiagram', 'stateDiagram', 'erDiagram', 'gantt', 'pie', 'gitGraph'];
+        const cleanDiagram = data.diagram.trim();
+        if (validStarts.some(start => cleanDiagram.startsWith(start))) {
+          setDiagramCode(data.diagram);
+        }
+      }
     } catch (error) {
       console.error("Error generating diagram:", error);
     } finally {
-      setIsTyping(false);
+      setIsGenerating(false);
     }
   };
 
@@ -161,7 +173,13 @@ export default function Home() {
       const aiMsg: Message = { role: "ai", content: data.message };
       setMessages((prev) => [...prev, aiMsg]);
       // We don't necessarily need to update the diagram for an explanation, but if the AI returns one, we can.
-      if (data.diagram) setDiagramCode(data.diagram);
+      if (data.diagram && typeof data.diagram === 'string') {
+        const validStarts = ['graph', 'flowchart', 'sequenceDiagram', 'classDiagram', 'stateDiagram', 'erDiagram', 'gantt', 'pie', 'gitGraph'];
+        const cleanDiagram = data.diagram.trim();
+        if (validStarts.some(start => cleanDiagram.startsWith(start))) {
+          setDiagramCode(data.diagram);
+        }
+      }
     } catch (error) {
       console.error("Error explaining component:", error);
     } finally {
@@ -191,6 +209,7 @@ export default function Home() {
           onNodeClick={handleExplainComponent}
           onGenerateDiagram={handleGenerateDiagram}
           isTyping={isTyping}
+          isGenerating={isGenerating}
         />
       </div>
     </main>

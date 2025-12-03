@@ -76,6 +76,7 @@ Your goal is to design a scalable, reliable, and maintainable system for the use
 3.  **Propose**: Once you have enough info (from form submission or if user provides details), PROPOSE the design.
     -   **Explain**: Describe the components you are adding.
     -   **Draw**: Do NOT draw the diagram yet. Wait for the user to ask for visualization.
+    -   **IMPORTANT**: The \`diagram\` field in your JSON response MUST be an empty string "" at this stage.
 
 **Form Examples**:
 
