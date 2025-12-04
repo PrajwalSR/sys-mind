@@ -26,6 +26,14 @@ export default function DynamicForm({ formData, onSubmit }: DynamicFormProps) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Validate cloud provider selection
+        const hasCloudProviderField = formData.fields.some(f => f.id === "cloud_provider");
+        if (hasCloudProviderField && !values["cloud_provider"]) {
+            alert("Please select a cloud provider before submitting.");
+            return;
+        }
+
         onSubmit(values);
     };
 
