@@ -9,33 +9,46 @@
 ### 1. Three Specialized Modes
 SysMind adapts to your learning style with three distinct modes:
 
-*   **🎤 Interview Mode (Default)**
+*   **🏗️ Solution Mode (Default)**
+    *   **Goal**: Learn from an expert.
+    *   **Behavior**: The AI acts as a Senior Principal Architect. It collaborates with you, asks comprehensive clarifying requirements using **dynamic forms**, and then proactively designs and explains the ideal system.
+    *   **Enhanced**: The AI presents structured forms with 5-7 comprehensive questions covering cloud provider, scale, features, geography, performance, and special requirements.
+    *   **Cloud Provider Selection**: Every form includes cloud provider selection (AWS/GCP/Azure) as the first field, ensuring diagrams use the correct cloud-specific icons.
+    *   **Best for**: Learning new patterns and seeing "perfect" solutions.
+
+*   **🎤 Interview Mode (Coming Soon)**
     *   **Goal**: Test your skills.
     *   **Behavior**: The AI acts as a Socratic interviewer. It asks probing questions, challenges your assumptions, and gives hints without revealing the answer.
     *   **Best for**: Mock interviews and active practice.
 
-*   **🏗️ Solution Mode**
-    *   **Goal**: Learn from an expert.
-    *   **Behavior**: The AI acts as a Senior Principal Architect. It collaborates with you, asks clarifying requirements using **dynamic forms**, and then proactively designs and explains the ideal system.
-    *   **New**: Instead of text-based questions, the AI presents structured forms with input fields for gathering requirements (e.g., number of users, traffic patterns, feature requirements).
-    *   **Best for**: Learning new patterns and seeing "perfect" solutions.
-
-*   **🎨 Review Mode**
+*   **🎨 Review Mode (Coming Soon)**
     *   **Goal**: Get feedback on your ideas.
     *   **Behavior**: You describe a system (e.g., "I have a React app talking to a Node backend..."), and the AI visualizes it and critiques it for bottlenecks, SPOFs (Single Points of Failure), and scalability issues.
     *   **Best for**: Validating your own designs.
 
-### 2. Dynamic Requirement Forms 🆕
-*   **Smart Forms**: When you ask to design a system (e.g., "Design Instagram", "Design URL Shortener"), the AI presents a structured form instead of asking questions in text.
-*   **Efficient Input**: Fill in fields for scale, traffic patterns, and features all at once.
-*   **Supported Fields**: Number inputs, text fields, and dropdown selections.
+### 2. Enhanced Dynamic Requirement Forms 🎯
+*   **Comprehensive Questioning**: When you ask to design a system (e.g., "Design Instagram", "Design URL Shortener"), the AI presents a structured form with 5-7 comprehensive questions.
+*   **Required Cloud Provider**: Every form includes cloud provider selection (AWS/GCP/Azure) as the first required field, with client-side validation.
+*   **Complete Categories**: Forms cover all critical aspects:
+    - Cloud Provider (always first)
+    - Scale/Volume (users, traffic, data size)
+    - Key Features/Functionality
+    - Geographic Distribution (regions)
+    - Performance Requirements (latency, quality)
+    - Special Requirements (compliance, security, analytics)
+*   **Smart Field Types**: Number inputs for quantities, dropdowns for predefined choices, text fields for custom requirements.
 *   **Clean History**: Submitted values are formatted and displayed in the chat for easy reference.
 
-### 3. Live Architecture Diagrams (Mermaid.js)
+### 3. Live Architecture Diagrams (draw.io) 🎨
+*   **Cloud Provider Aware**: Diagrams automatically use the correct cloud-specific icons based on your selected provider (AWS, GCP, or Azure).
 *   **On-Demand Visualization**: Click the **"Visualize"** button at any time to generate a professional system architecture diagram based on your current conversation.
-*   **Interactive Nodes**: Click on any component in the diagram (e.g., "Load Balancer", "Redis") to get a specific, technical explanation of its role in your design.
+*   **Interactive Editing**: Toggle between View and Edit modes to customize your diagrams.
+*   **Self-Healing with Retry Logic**: Automatic diagram error recovery with up to 3 intelligent retry attempts.
+*   **Validation**: Each retry is validated to ensure the fix actually resolves the issue.
+*   **Progressive Fallback**: If diagram generation fails after 3 attempts, offers a detailed text-based architecture description.
+*   **Visual Feedback**: Clear retry progress indication showing "Attempt X/3" during regeneration.
 
-### 3. "Reveal Solution"
+### 4. "Reveal Solution"
 *   Stuck during an interview? Click **"Reveal Solution"** to instantly get a comprehensive, high-level design for the current problem, complete with a diagram and trade-off analysis.
 
 ---
@@ -115,12 +128,37 @@ Check out [SCENARIOS.md](./SCENARIOS.md) for detailed example workflows for each
 
 ---
 
+## ✨ Recent Improvements
+
+### December 2024 - Enhanced Solutions Feature
+**Issue 1: Cloud Provider Integration**
+- ✅ All forms now include cloud provider selection as the first required field
+- ✅ Client-side validation prevents form submission without cloud provider
+- ✅ Cloud provider extracted from form and tracked throughout session
+- ✅ Diagrams automatically use correct cloud-specific icons (AWS/GCP/Azure)
+
+**Issue 2: Comprehensive Requirement Gathering**
+- ✅ Forms expanded to 5-7 comprehensive fields
+- ✅ All critical categories covered: cloud, scale, features, geography, performance, special requirements
+- ✅ AI instructed to ask all questions upfront (no follow-ups)
+- ✅ Examples updated: URL Shortener (6 fields), Instagram (6 fields), Netflix (7 fields)
+
+**Issue 3: Robust Diagram Generation**
+- ✅ Retry limit increased from 1 to 3 attempts
+- ✅ Intelligent validation ensures fixes actually work
+- ✅ Progressive fallback offers text-based architecture after failed retries
+- ✅ Clear UI feedback showing retry progress (Attempt 1/3, 2/3, 3/3)
+- ✅ Automatic retry on validation failures
+
+---
+
 ## 🏗️ Tech Stack
-*   **Framework**: Next.js 14 (App Router)
-*   **AI**: Google Vertex AI (Gemini Pro)
-*   **Styling**: Tailwind CSS
-*   **Diagrams**: Mermaid.js
+*   **Framework**: Next.js 16 (App Router) with React 19
+*   **AI**: Google Vertex AI (Gemini 2.0 Flash Exp)
+*   **Styling**: Tailwind CSS v4
+*   **Diagrams**: draw.io (diagrams.net) with cloud provider icon libraries
 *   **Icons**: Lucide React
+*   **Markdown**: react-markdown with GitHub Flavored Markdown support
 
 ## 📄 License
 MIT

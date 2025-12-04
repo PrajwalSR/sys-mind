@@ -27,7 +27,8 @@ export default function DynamicForm({ formData, onSubmit }: DynamicFormProps) {
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Validate cloud provider selection
+        // Validate cloud provider selection if present in form
+        // This ensures diagrams can use the correct cloud-specific icons
         const hasCloudProviderField = formData.fields.some(f => f.id === "cloud_provider");
         if (hasCloudProviderField && !values["cloud_provider"]) {
             alert("Please select a cloud provider before submitting.");
