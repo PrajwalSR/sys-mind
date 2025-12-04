@@ -21,6 +21,10 @@ export default function Home() {
   ]);
   const [diagramCode, setDiagramCode] = useState(INITIAL_DIAGRAM);
   const [isTyping, setIsTyping] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [cloudProvider, setCloudProvider] = useState<'aws' | 'gcp' | 'azure' | undefined>(undefined);
 
   const handleModeChange = (newMode: "interview" | "solution" | "review") => {
     setMode(newMode);
@@ -38,9 +42,15 @@ export default function Home() {
     setDiagramCode(INITIAL_DIAGRAM);
   };
 
-  const [isGenerating, setIsGenerating] = useState(false);
+  const handleSendMessage = async (content: string, cloudProvider?: string) => {
+    // Update cloud provider from form submission
+    if (cloudProvider) {
+      const normalized = cloudProvider.toLowerCase().includes('gcp') ? 'gcp'
+        : cloudProvider.toLowerCase().includes('azure') ? 'azure'
+        : 'aws';
+      setCloudProvider(normalized as 'aws' | 'gcp' | 'azure');
+    }
 
-  const handleSendMessage = async (content: string) => {
     // Add user message
     const userMsg: Message = { role: "user", content };
     const newMessages = [...messages, userMsg];
@@ -66,13 +76,14 @@ export default function Home() {
 
       setMessages((prev) => [...prev, aiMsg]);
 
-      // Only update diagram if it looks like a valid mermaid diagram
-      if (data.diagram && typeof data.diagram === 'string') {
-        const validStarts = ['graph', 'flowchart', 'sequenceDiagram', 'classDiagram', 'stateDiagram', 'erDiagram', 'gantt', 'pie', 'gitGraph'];
-        const cleanDiagram = data.diagram.trim();
-        if (validStarts.some(start => cleanDiagram.startsWith(start))) {
-          setDiagramCode(data.diagram);
-        }
+      // Update diagram if draw.io XML is returned
+      if (data.diagram && typeof data.diagram === 'string' && data.diagram.trim()) {
+        setDiagramCode(data.diagram);
+      }
+
+      // Update cloud provider if detected
+      if (data.cloudProvider) {
+        setCloudProvider(data.cloudProvider);
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -111,12 +122,12 @@ export default function Home() {
       const aiMsg: Message = { role: "ai", content: data.message };
       setMessages((prev) => [...prev, aiMsg]);
 
-      if (data.diagram && typeof data.diagram === 'string') {
-        const validStarts = ['graph', 'flowchart', 'sequenceDiagram', 'classDiagram', 'stateDiagram', 'erDiagram', 'gantt', 'pie', 'gitGraph'];
-        const cleanDiagram = data.diagram.trim();
-        if (validStarts.some(start => cleanDiagram.startsWith(start))) {
-          setDiagramCode(data.diagram);
-        }
+      if (data.diagram && typeof data.diagram === 'string' && data.diagram.trim()) {
+        setDiagramCode(data.diagram);
+      }
+
+      if (data.cloudProvider) {
+        setCloudProvider(data.cloudProvider);
       }
     } catch (error) {
       console.error("Error getting solution:", error);
@@ -130,6 +141,7 @@ export default function Home() {
     if (isGenerating) return;
 
     setIsGenerating(true);
+    setRetryCount(0); // Reset retry count for new generation
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
@@ -141,17 +153,113 @@ export default function Home() {
 
       const data = await response.json();
       // We don't add a message for diagram generation, just update the diagram
-      if (data.diagram && typeof data.diagram === 'string') {
-        const validStarts = ['graph', 'flowchart', 'sequenceDiagram', 'classDiagram', 'stateDiagram', 'erDiagram', 'gantt', 'pie', 'gitGraph'];
-        const cleanDiagram = data.diagram.trim();
-        if (validStarts.some(start => cleanDiagram.startsWith(start))) {
-          setDiagramCode(data.diagram);
-        }
+      if (data.diagram && typeof data.diagram === 'string' && data.diagram.trim()) {
+        setDiagramCode(data.diagram);
+      }
+
+      if (data.cloudProvider) {
+        setCloudProvider(data.cloudProvider);
       }
     } catch (error) {
       console.error("Error generating diagram:", error);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  // Self-healing: Fix broken diagrams
+  const handleFixDiagram = async (brokenXml: string, error: string) => {
+    // Allow up to 3 retry attempts
+    if (retryCount >= 3) {
+      const offerTextFallback = confirm(
+        "Diagram generation failed after 3 attempts. Would you like a text-based architecture description instead?"
+      );
+
+      if (offerTextFallback) {
+        handleRequestTextArchitecture();
+      }
+      return;
+    }
+
+    setIsRegenerating(true);
+    setRetryCount(prev => prev + 1);
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages,
+          action: "fix_diagram",
+          brokenXml,
+          errorMessage: error,
+          mode
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to fix diagram");
+
+      const data = await response.json();
+      if (data.diagram && typeof data.diagram === 'string' && data.diagram.trim()) {
+        // Validate that the fix is actually different and valid
+        const isValidFix = data.diagram !== brokenXml &&
+                          data.diagram.includes('<mxGraphModel>');
+
+        if (isValidFix) {
+          setDiagramCode(data.diagram);
+          setRetryCount(0); // Reset on success
+        } else {
+          // Fix didn't actually work, retry again if attempts remain
+          if (retryCount < 2) {
+            console.warn(`Retry ${retryCount + 1} failed validation, retrying...`);
+            setIsRegenerating(false);
+            setTimeout(() => handleFixDiagram(brokenXml, error), 100);
+          } else {
+            alert("Diagram repair failed after multiple attempts. Please try refreshing the page.");
+          }
+        }
+      } else {
+        // If AI couldn't fix it and we have retries left, try again
+        if (retryCount < 2) {
+          console.warn(`Retry ${retryCount + 1} returned empty diagram, retrying...`);
+          setIsRegenerating(false);
+          setTimeout(() => handleFixDiagram(brokenXml, error), 100);
+        } else {
+          alert("Diagram repair failed. Please try refreshing the page.");
+        }
+      }
+    } catch (error) {
+      console.error("Error fixing diagram:", error);
+      alert("Diagram repair failed. Please try refreshing the page.");
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
+
+  const handleRequestTextArchitecture = async () => {
+    setIsTyping(true);
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: [...messages, {
+            role: "user",
+            content: "The diagram is having issues. Please provide a detailed text-based architecture description instead."
+          }],
+          mode
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to get text architecture");
+
+      const data = await response.json();
+      const aiMsg: Message = { role: "ai", content: data.message };
+      setMessages((prev) => [...prev, aiMsg]);
+    } catch (error) {
+      console.error("Error getting text architecture:", error);
+    } finally {
+      setIsTyping(false);
     }
   };
 
@@ -173,12 +281,8 @@ export default function Home() {
       const aiMsg: Message = { role: "ai", content: data.message };
       setMessages((prev) => [...prev, aiMsg]);
       // We don't necessarily need to update the diagram for an explanation, but if the AI returns one, we can.
-      if (data.diagram && typeof data.diagram === 'string') {
-        const validStarts = ['graph', 'flowchart', 'sequenceDiagram', 'classDiagram', 'stateDiagram', 'erDiagram', 'gantt', 'pie', 'gitGraph'];
-        const cleanDiagram = data.diagram.trim();
-        if (validStarts.some(start => cleanDiagram.startsWith(start))) {
-          setDiagramCode(data.diagram);
-        }
+      if (data.diagram && typeof data.diagram === 'string' && data.diagram.trim()) {
+        setDiagramCode(data.diagram);
       }
     } catch (error) {
       console.error("Error explaining component:", error);
@@ -206,10 +310,14 @@ export default function Home() {
       <div className="w-[60%] h-full min-w-[500px]">
         <DiagramPanel
           code={diagramCode}
-          onNodeClick={handleExplainComponent}
+          onCodeChange={setDiagramCode}
           onGenerateDiagram={handleGenerateDiagram}
+          onFixDiagram={handleFixDiagram}
           isTyping={isTyping}
           isGenerating={isGenerating}
+          isRegenerating={isRegenerating}
+          cloudProvider={cloudProvider}
+          retryCount={retryCount}
         />
       </div>
     </main>

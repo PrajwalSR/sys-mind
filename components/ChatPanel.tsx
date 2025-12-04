@@ -11,7 +11,7 @@ import DynamicForm from "./DynamicForm";
 
 interface ChatPanelProps {
     messages: Message[];
-    onSendMessage: (content: string) => void;
+    onSendMessage: (content: string, cloudProvider?: string) => void;
     onSave: () => void;
     onRevealSolution: () => void;
     isTyping: boolean;
@@ -47,6 +47,9 @@ export default function ChatPanel({ messages, onSendMessage, onSave, onRevealSol
     };
 
     const handleFormSubmit = (messageIndex: number, values: Record<string, string>) => {
+        // Extract cloud provider if present
+        const cloudProvider = values["cloud_provider"];
+
         // Format the form values into a readable message
         const formattedMessage = Object.entries(values)
             .map(([key, value]) => {
@@ -59,8 +62,8 @@ export default function ChatPanel({ messages, onSendMessage, onSave, onRevealSol
         // Mark this form as submitted
         setSubmittedForms(prev => new Set(prev).add(messageIndex));
 
-        // Send the formatted message
-        onSendMessage(formattedMessage);
+        // Send the formatted message with cloud provider
+        onSendMessage(formattedMessage, cloudProvider);
     };
 
 

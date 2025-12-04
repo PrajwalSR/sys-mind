@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { VertexAI } from "@google-cloud/vertexai";
-import { SYSTEM_PROMPT, SOLUTION_PROMPT, EXPLANATION_PROMPT, ARCHITECT_PROMPT, REVIEW_PROMPT, DIAGRAM_PROMPT } from "@/lib/systemPrompt";
+import { SYSTEM_PROMPT, SOLUTION_PROMPT, EXPLANATION_PROMPT, ARCHITECT_PROMPT, REVIEW_PROMPT, DIAGRAM_PROMPT, DRAWIO_FIX_PROMPT } from "@/lib/systemPrompt";
 
 // Initialize Vertex AI
-// Note: In a real app, these should be environment variables
 const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || "sys-mind-mock";
 const LOCATION = "us-central1";
-const MODEL_ID = "gemini-2.5-pro"; // Latest model from docs
+const MODEL_ID = "gemini-2.0-flash-exp";
 
 // Prepare auth options for Vercel/Serverless environments
 let authOptions: { credentials: any } | undefined;
@@ -49,26 +48,41 @@ const model = vertexAI.getGenerativeModel({ model: MODEL_ID });
 
 export async function POST(req: Request) {
     try {
-        const { messages, action, component, mode } = await req.json();
+        const { messages, action, component, mode, brokenXml, errorMessage } = await req.json();
         const lastMessage = messages[messages.length - 1];
 
-        // Check if we have credentials. If not, return mock response.
+        // Check if we have credentials. If not, return mock draw.io response.
         if (!authOptions) {
-            console.warn("No Google Cloud Project ID found. Returning mock response.");
+            console.warn("No Google Cloud credentials found. Returning mock response.");
             return NextResponse.json({
-                message: "I'm running in mock mode because no Google Cloud credentials were provided. But I can still draw!",
-                diagram: `graph TD
-    User[User] -->|Mock Request| LB{Load Balancer}
-    LB -->|Round Robin| App[App Server]
-    App -->|Query| DB[(Database)]
-    style LB fill:#f9f,stroke:#333,stroke-width:2px`
+                message: "I'm running in mock mode because no Google Cloud credentials were provided.",
+                diagram: `<mxGraphModel>
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    <mxCell id="2" value="User" style="shape=mxgraph.aws4.user;fillColor=#4285F4;gradientColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;" vertex="1" parent="1">
+      <mxGeometry x="100" y="100" width="78" height="78" as="geometry"/>
+    </mxCell>
+    <mxCell id="3" value="Load Balancer" style="shape=mxgraph.aws4.elastic_load_balancing;fillColor=#8C4FFF;gradientColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;" vertex="1" parent="1">
+      <mxGeometry x="300" y="100" width="78" height="78" as="geometry"/>
+    </mxCell>
+    <mxCell id="4" value="App Server" style="shape=mxgraph.aws4.ec2;fillColor=#ED7100;gradientColor=none;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;" vertex="1" parent="1">
+      <mxGeometry x="500" y="100" width="78" height="78" as="geometry"/>
+    </mxCell>
+    <mxCell id="5" value="Request" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="2" target="3">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    <mxCell id="6" value="Forward" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="3" target="4">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+  </root>
+</mxGraphModel>`,
+                diagramType: "drawio",
+                cloudProvider: "aws"
             });
         }
 
         // Construct the chat history for Gemini
-        // If we have a specific action (solution, explain, generate_diagram), the 'messages' array 
-        // represents the full history, so we use it all.
-        // If it's a normal chat, the last message is the new prompt, so we slice it off history.
         const historyMessages = action ? messages : messages.slice(0, -1);
 
         const chatHistory = historyMessages.map((msg: any) => ({
@@ -98,11 +112,13 @@ export async function POST(req: Request) {
             result = await chat.sendMessage(SOLUTION_PROMPT);
         } else if (action === "explain" && component) {
             // User clicked a component
-            // We send this as a user message to contextually explain
             result = await chat.sendMessage(EXPLANATION_PROMPT(component));
         } else if (action === "generate_diagram") {
             // User manually requested a diagram
             result = await chat.sendMessage(DIAGRAM_PROMPT);
+        } else if (action === "fix_diagram") {
+            // Self-healing: Fix broken diagram
+            result = await chat.sendMessage(DRAWIO_FIX_PROMPT(brokenXml, errorMessage));
         } else {
             // Normal chat
             result = await chat.sendMessage(lastMessage.content);
