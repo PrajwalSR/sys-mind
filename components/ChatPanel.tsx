@@ -47,7 +47,8 @@ export default function ChatPanel({ messages, onSendMessage, onSave, onRevealSol
     };
 
     const handleFormSubmit = (messageIndex: number, values: Record<string, string>) => {
-        // Extract cloud provider if present
+        // Extract cloud provider for diagram generation
+        // Will be passed to parent and stored in state
         const cloudProvider = values["cloud_provider"];
 
         // Format the form values into a readable message

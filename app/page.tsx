@@ -43,7 +43,8 @@ export default function Home() {
   };
 
   const handleSendMessage = async (content: string, cloudProvider?: string) => {
-    // Update cloud provider from form submission
+    // Update cloud provider from form submission if provided
+    // This ensures diagrams use the correct cloud-specific icons
     if (cloudProvider) {
       const normalized = cloudProvider.toLowerCase().includes('gcp') ? 'gcp'
         : cloudProvider.toLowerCase().includes('azure') ? 'azure'
@@ -167,9 +168,14 @@ export default function Home() {
     }
   };
 
-  // Self-healing: Fix broken diagrams
+  /**
+   * Self-healing diagram repair with intelligent retry logic
+   * - Attempts up to 3 retries with validation
+   * - Offers progressive fallback to text-based architecture
+   * - Validates fixes to ensure they actually resolve issues
+   */
   const handleFixDiagram = async (brokenXml: string, error: string) => {
-    // Allow up to 3 retry attempts
+    // Allow up to 3 retry attempts before offering fallback
     if (retryCount >= 3) {
       const offerTextFallback = confirm(
         "Diagram generation failed after 3 attempts. Would you like a text-based architecture description instead?"
@@ -201,7 +207,7 @@ export default function Home() {
 
       const data = await response.json();
       if (data.diagram && typeof data.diagram === 'string' && data.diagram.trim()) {
-        // Validate that the fix is actually different and valid
+        // Validate fix: must be different from broken XML and contain required structure
         const isValidFix = data.diagram !== brokenXml &&
                           data.diagram.includes('<mxGraphModel>');
 
@@ -236,6 +242,10 @@ export default function Home() {
     }
   };
 
+  /**
+   * Progressive fallback: Request text-based architecture description
+   * Called when diagram generation fails after all retry attempts
+   */
   const handleRequestTextArchitecture = async () => {
     setIsTyping(true);
     try {
