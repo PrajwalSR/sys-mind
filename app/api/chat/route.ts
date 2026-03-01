@@ -5,7 +5,7 @@ import { SYSTEM_PROMPT, SOLUTION_PROMPT, EXPLANATION_PROMPT, ARCHITECT_PROMPT, R
 // Initialize Vertex AI
 const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || "sys-mind-mock";
 const LOCATION = "us-central1";
-const MODEL_ID = "gemini-2.0-flash-exp";
+const MODEL_ID = "gemini-2.5-pro";
 
 // Prepare auth options for Vercel/Serverless environments
 let authOptions: { credentials: any } | undefined;
