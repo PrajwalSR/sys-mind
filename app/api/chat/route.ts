@@ -1,6 +1,19 @@
 import { NextResponse } from "next/server";
 import { VertexAI } from "@google-cloud/vertexai";
 import { SYSTEM_PROMPT, SOLUTION_PROMPT, EXPLANATION_PROMPT, ARCHITECT_PROMPT, REVIEW_PROMPT, DIAGRAM_PROMPT, DRAWIO_FIX_PROMPT } from "@/lib/systemPrompt";
+import { z } from 'zod';
+
+const chatRequestSchema = z.object({
+  messages: z.array(z.object({
+    role: z.string(),
+    content: z.string().max(10000), // Limit content length to 10000 characters
+  })).min(1), // Require at least one message
+  action: z.enum(["solution", "explain", "generate_diagram", "fix_diagram"]).optional(),
+  component: z.string().max(100).optional(), // Limit component length
+  mode: z.enum(["solution", "review"]).optional(),
+  brokenXml: z.string().max(50000).optional(), // Limit XML length
+  errorMessage: z.string().max(1000).optional(), // Limit error message length
+});
 
 // Initialize Vertex AI
 const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || "sys-mind-mock";
@@ -48,7 +61,14 @@ const model = vertexAI.getGenerativeModel({ model: MODEL_ID });
 
 export async function POST(req: Request) {
     try {
-        const { messages, action, component, mode, brokenXml, errorMessage } = await req.json();
+        const body = await req.json();
+        const parseResult = chatRequestSchema.safeParse(body);
+
+        if (!parseResult.success) {
+            return NextResponse.json({ error: parseResult.error.issues }, { status: 400 });
+        }
+
+        const { messages, action, component, mode, brokenXml, errorMessage } = parseResult.data;
         const lastMessage = messages[messages.length - 1];
 
         // Check if we have credentials. If not, return mock draw.io response.

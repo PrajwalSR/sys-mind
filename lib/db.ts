@@ -10,8 +10,8 @@ export interface Session {
 }
 
 export async function saveSession(session: Session) {
-    if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
-        console.warn("Supabase credentials missing. Session not saved.");
+    if (!supabase) {
+        // The warning is already logged in lib/supabase.ts
         return null;
     }
 
